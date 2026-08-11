@@ -85,6 +85,21 @@ perfectly.
 
 ## Setup
 
+### Fast path
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/suvrashaw/proxkey-jsignpdf-macos/main/install.sh | bash
+```
+
+This clones the repo, installs Java 11, disables the lock-holding daemon,
+and builds the app — everything that's safe to automate. It **cannot**
+install Watchdata's driver package or run the `sudo` command for you
+(different vendors host the driver at different URLs, and unattended
+`sudo` in a piped script is bad practice) — the script prints exactly
+what's left to do manually. If you'd rather see every step before running
+anything, or just want to understand what's happening, follow the manual
+steps below instead — `install.sh` does exactly what steps 4–6 describe.
+
 ### 1. Install the official Watchdata macOS driver
 
 Get `proxkey_mac.pkg` from your token vendor's support portal — for

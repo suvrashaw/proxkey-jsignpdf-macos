@@ -148,6 +148,14 @@ lock that's never coming free. Diagnosed via an <code>lldb</code> backtrace
 on the hung process and disassembly of the locking function — full writeup
 in the <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos#technical-appendix-how-the-lock-bug-was-actually-diagnosed">repo's technical appendix</a>.</p>
 
+<h2>Install (one line)</h2>
+<pre><code>curl -fsSL https://raw.githubusercontent.com/suvrashaw/proxkey-jsignpdf-macos/main/install.sh | bash</code></pre>
+<p>Automates everything that's safe to automate — cloning, Java 11, and
+disabling the lock-holding daemon. It can't install Watchdata's driver
+package or run <code>sudo</code> unattended (different vendors, different
+URLs), so it prints exactly what's left. Details below, or in the
+<a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos#setup">repo's Setup section</a>.</p>
+
 <h2>The fix, summarized</h2>
 <pre><code># 1. Install Watchdata's official macOS driver (proxkey_mac.pkg from your vendor)
 
