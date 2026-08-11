@@ -24,6 +24,7 @@ SOFTWARE.
 
 This license applies only to this repository's own scripts (run-jsignpdf.command,
 scripts/build-app.sh, and this documentation). It does not apply to, and does
-not grant any rights to, JSignPdf (LGPLv2/MPL 1.0-licensed, see
-https://github.com/intoolswetrust/jsignpdf) or Watchdata's ProxKey drivers
-(proprietary), neither of which are distributed in this repository.
+not grant any rights to, JSignPdf, bundled unmodified in vendor/jsignpdf-2.3.0/
+under its own LGPLv2/MPL 1.0 terms (see vendor/jsignpdf-2.3.0/licenses/ and
+https://github.com/intoolswetrust/jsignpdf), or to Watchdata's ProxKey drivers
+(proprietary), which are not distributed in this repository.

@@ -142,22 +142,17 @@ untouched:
 brew install --cask temurin@11
 ```
 
-### 5. Get JSignPdf itself
+### 5. Build the launcher app
 
-Download **JSignPdf 2.3.0** from the
-[official releases page](https://github.com/intoolswetrust/jsignpdf/releases),
-unzip it, and place the contents so you have:
-
-```
-vendor/jsignpdf-2.3.0/JSignPdf.jar
-vendor/jsignpdf-2.3.0/conf/...
-vendor/jsignpdf-2.3.0/...
-```
-
-(`vendor/` is gitignored — this repo doesn't redistribute JSignPdf's jar,
-since it's third-party LGPLv2/MPL 1.0-licensed software, not ours to ship.)
-
-### 6. Build the launcher app
+**JSignPdf 2.3.0 is bundled in `vendor/jsignpdf-2.3.0/`** — no separate
+download needed. (It's redistributed here under its own license terms,
+LGPLv2/MPL 1.0, both of which permit redistributing the compiled jar as
+long as copyright notices and license text are preserved and source stays
+available — see `vendor/jsignpdf-2.3.0/licenses/` for the license texts
+JSignPdf ships, and its source is at
+[intoolswetrust/jsignpdf](https://github.com/intoolswetrust/jsignpdf). It's
+unmodified from the official 2.3.0 release; only `conf/pkcs11.cfg` in
+*this* repo — a separate file, not JSignPdf's own — is customized.)
 
 ```bash
 ./scripts/build-app.sh
@@ -189,8 +184,8 @@ That's the whole workflow — no Terminal needed after setup.
 ## What `run-jsignpdf.command` actually does
 
 ```
-1. Locates vendor/jsignpdf-2.3.0/JSignPdf.jar (fails with a clear
-   dialog if you haven't downloaded it yet)
+1. Locates vendor/jsignpdf-2.3.0/JSignPdf.jar (bundled in this repo;
+   fails with a clear dialog if it's somehow missing)
 2. Locates Java 11 via `/usr/libexec/java_home -v 11`
 3. Kills ProxkeyCertMND if it's somehow running (belt-and-suspenders,
    in case step 3 of Setup ever gets undone by a driver reinstall)
@@ -308,7 +303,9 @@ driver, the methodology here generalizes:
 ## License
 
 This repo's own scripts (`run-jsignpdf.command`, `scripts/build-app.sh`)
-are provided as-is, MIT-licensed — see `LICENSE`. They don't include or
-redistribute JSignPdf (LGPLv2/MPL 1.0, download separately per Setup step 5)
-or Watchdata's driver (proprietary, install from your vendor's official
-source per Setup step 1).
+are provided as-is, MIT-licensed — see `LICENSE`. `vendor/jsignpdf-2.3.0/`
+is JSignPdf 2.3.0, unmodified, redistributed under its own LGPLv2/MPL 1.0
+terms (license texts included at `vendor/jsignpdf-2.3.0/licenses/`;
+source at [intoolswetrust/jsignpdf](https://github.com/intoolswetrust/jsignpdf)).
+Watchdata's driver (proprietary) is **not** included — install it from
+your vendor's official source per Setup step 1.

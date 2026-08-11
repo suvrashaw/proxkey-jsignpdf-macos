@@ -1,6 +1,2 @@
-# Vendor JSignPdf distribution (third-party GPL/LGPL/MPL software).
-# Download it yourself — see README.md "Setup" section.
-vendor/
-
 # macOS
 .DS_Store
