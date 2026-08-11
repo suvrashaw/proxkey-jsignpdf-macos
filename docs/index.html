@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WD ProxKey / Watchdata DSC Token Not Working on macOS — Fix &amp; Sign PDFs with JSignPdf</title>
+<meta name="description" content="Fix WD ProxKey / Watchdata DSC token not detected or hanging on macOS (Apple Silicon &amp; Intel). Root cause, permanent fix, and a one-click app to sign PDFs with JSignPdf via PKCS#11 on Mac.">
+<link rel="canonical" href="https://suvrashaw.github.io/proxkey-jsignpdf-macos/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="WD ProxKey / Watchdata DSC Token Not Working on macOS — Fix &amp; Sign PDFs with JSignPdf">
+<meta property="og:description" content="Root cause and permanent fix for WD ProxKey / Watchdata DSC tokens hanging or not detected on macOS, plus a one-click JSignPdf launcher for PKCS#11 PDF signing.">
+<meta property="og:url" content="https://suvrashaw.github.io/proxkey-jsignpdf-macos/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="WD ProxKey / Watchdata DSC Token Not Working on macOS — Fix &amp; Sign PDFs with JSignPdf">
+<meta name="twitter:description" content="Root cause and permanent fix for WD ProxKey / Watchdata DSC tokens hanging or not detected on macOS, plus a one-click JSignPdf launcher for PKCS#11 PDF signing.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareSourceCode",
+  "name": "ProxKey + JSignPdf on macOS",
+  "description": "Fixes the Watchdata ProxKey PKCS#11 driver hanging indefinitely on macOS by disabling the ProxkeyCertMND background helper (which holds an exclusive device lock forever) and pinning JSignPdf to Java 11.",
+  "codeRepository": "https://github.com/suvrashaw/proxkey-jsignpdf-macos",
+  "programmingLanguage": ["Shell", "Java"],
+  "operatingSystem": "macOS",
+  "about": {
+    "@type": "Thing",
+    "name": "WD ProxKey / Watchdata DSC token PKCS#11 driver bug on macOS"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Does WD ProxKey / Watchdata work on macOS at all?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, but only after fixing two bugs: a locking bug in Watchdata's own macOS driver, and a Java-version incompatibility in JSignPdf 2.3.0. There is no working configuration that skips both fixes."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why are all the buttons in ProxKey Token Tool greyed out on Mac?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ProxkeyCertMND, a background helper Watchdata installs, holds an exclusive lock on the token forever and never releases it, so every PKCS#11 client — including Watchdata's own GUI — hangs waiting for a lock that's never coming free. Disabling ProxkeyCertMND's LaunchAgent fixes it immediately."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does pkcs11-tool --list-slots or JSignPdf's Load Keys button hang forever?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Same root cause as the greyed-out buttons issue: Watchdata's ProxkeyCertMND helper holds an exclusive device lock permanently. It will not time out on its own — kill the process (pkill -f ProxkeyCertMND) and retry."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What Java version does JSignPdf need for PKCS#11 / smart card signing?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Java 11. JSignPdf 2.3.0's PKCS#11 code depends on internal JDK classes (sun.security.pkcs11.SunPKCS11, sun.security.action.GetPropertyAction) that JDK 16 and newer removed outright, so no --add-opens or --add-exports flag can work around it. Install Java 11 (e.g. brew install --cask temurin@11) and run JSignPdf on that specifically."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does this fix work on Apple Silicon (M1/M2/M3/M4) or only Intel Macs?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Both. Watchdata's driver (libwdpkcs_Proxkey.dylib) ships as a universal binary, and the locking bug reproduces identically on Apple Silicon and Intel."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is this specific to the ProxKey brand, or does it affect other DSC tokens too?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The bug is in Watchdata's shared macOS driver package, used across DSC tokens sold under different brand names by different Certifying Authorities such as eMudhra, Capricorn, Sify, and Pantasign. If pkcs11-tool --list-slots reports token manufacturer: Watchdata Corp., this fix almost certainly applies regardless of which CA issued the certificate."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I sign PDFs on Mac with a DSC token without a Windows license or a VM?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. After applying the driver fix and running JSignPdf on Java 11, PDFs can be signed natively on macOS via PKCS#11 with no Windows VM, Wine, or Boot Camp required."
+      }
+    }
+  ]
+}
+</script>
+<style>
+  :root{color-scheme:light dark}
+  body{font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;max-width:760px;margin:0 auto;padding:2.5rem 1.25rem 5rem;color:#1a1a1a;background:#fff}
+  @media(prefers-color-scheme:dark){body{color:#e6e6e6;background:#0d1117}a{color:#6cb6ff}code,pre{background:#161b22!important;border-color:#30363d!important}}
+  h1{font-size:1.6rem;line-height:1.3}
+  h2{font-size:1.25rem;margin-top:2.5rem;border-bottom:1px solid #d0d7de;padding-bottom:.3rem}
+  code{background:#f6f8fa;padding:.15em .4em;border-radius:4px;font-size:.9em}
+  pre{background:#f6f8fa;padding:1rem;border-radius:6px;overflow-x:auto}
+  pre code{background:none;padding:0}
+  .symptom-list li{margin-bottom:.5rem}
+  .qa dt{font-weight:600;margin-top:1.3rem}
+  .qa dd{margin-left:0;color:inherit;opacity:.9}
+  .cta{display:inline-block;margin-top:1rem;padding:.6rem 1.1rem;background:#1f6feb;color:#fff!important;border-radius:6px;text-decoration:none;font-weight:600}
+  footer{margin-top:4rem;opacity:.7;font-size:.9em}
+</style>
+</head>
+<body>
+
+<h1>WD ProxKey / Watchdata DSC token not working on macOS? Here's the actual fix.</h1>
+
+<p>If a Watchdata ProxKey (or any Watchdata TimeCos/PK-based DSC token,
+rebranded by CAs like eMudhra, Capricorn, Sify, or Pantasign) doesn't work
+on your Mac — driver installed, buttons greyed out, JSignPdf hangs — this
+page explains exactly why and how to fix it permanently.</p>
+
+<p><strong>Short answer:</strong> it's not your Mac, your token, or your
+certificate. Watchdata's own macOS driver has a locking bug (a background
+helper it installs, <code>ProxkeyCertMND</code>, holds an exclusive device
+lock forever), and JSignPdf 2.3.0 needs an older JDK than what ships by
+default. Both are fixable in a few minutes.</p>
+
+<a class="cta" href="https://github.com/suvrashaw/proxkey-jsignpdf-macos#setup">Full setup instructions &amp; one-click app →</a>
+
+<h2>Symptoms this fixes</h2>
+<ul class="symptom-list">
+  <li><strong>ProxKey Token Tool.app</strong> — every button (User Login, Change PIN, Import Cert…) stays permanently greyed out / disabled</li>
+  <li><code>pkcs11-tool --list-slots</code> hangs forever and never returns</li>
+  <li>JSignPdf's <strong>"Load keys"</strong> button hangs indefinitely, PIN prompt never appears</li>
+  <li>Java: <code>NoClassDefFoundError: sun/security/action/GetPropertyAction</code></li>
+  <li>Java: <code>IllegalAccessException … module jdk.crypto.cryptoki does not export sun.security.pkcs11</code></li>
+  <li>Java: <code>IllegalAccessError … cannot access class sun.security.util.Debug</code></li>
+  <li>WD ProxKey / Watchdata token not detected on macOS Sonoma / Sequoia / Tahoe, Apple Silicon or Intel</li>
+  <li>DSC token works fine on Windows but does nothing when plugged into a Mac</li>
+</ul>
+
+<h2>Root cause</h2>
+<p>Watchdata's <code>libwdpkcs_Proxkey.dylib</code> calls a function called
+<code>StartMutexDevice</code> before it will talk to the token, which
+acquires a Cocoa <code>NSDistributedLock</code> to serialize device access.
+A separate background helper Watchdata installs, <code>ProxkeyCertMND</code>,
+grabs that same lock on launch and never releases it — so every other
+PKCS#11 client, including Watchdata's own GUI, spins forever waiting for a
+lock that's never coming free. Diagnosed via an <code>lldb</code> backtrace
+on the hung process and disassembly of the locking function — full writeup
+in the <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos#technical-appendix-how-the-lock-bug-was-actually-diagnosed">repo's technical appendix</a>.</p>
+
+<h2>The fix, summarized</h2>
+<pre><code># 1. Install Watchdata's official macOS driver (proxkey_mac.pkg from your vendor)
+
+# 2. Let Watchdata's CCID driver own the reader
+sudo defaults write /Library/Preferences/com.apple.security.smartcard useIFDCCID -bool yes
+
+# 3. Disable the buggy lock-holding helper — the actual fix
+pkill -f ProxkeyCertMND
+launchctl disable gui/$(id -u)/com.watchdata.proxkey.launchd.certmnd
+
+# 4. Run JSignPdf on Java 11, not your system Java
+brew install --cask temurin@11</code></pre>
+
+<p>Full step-by-step instructions, a one-click double-clickable macOS app
+that wraps JSignPdf correctly, and troubleshooting for edge cases are all
+in the <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos">GitHub repository</a>.</p>
+
+<h2>FAQ</h2>
+<dl class="qa">
+  <dt>Does WD ProxKey / Watchdata work on macOS at all?</dt>
+  <dd>Yes, but only after fixing the two bugs above. There is no working configuration that skips both fixes.</dd>
+
+  <dt>Why are all the buttons in ProxKey Token Tool greyed out on Mac?</dt>
+  <dd><code>ProxkeyCertMND</code> is holding the device lock. Disable it and the buttons work immediately.</dd>
+
+  <dt>Why does pkcs11-tool --list-slots / JSignPdf's "Load keys" hang forever?</dt>
+  <dd>Same cause — it will not time out on its own. Kill <code>ProxkeyCertMND</code> and retry.</dd>
+
+  <dt>What Java version does JSignPdf need?</dt>
+  <dd>Java 11 specifically — newer JDKs removed internal classes JSignPdf 2.3.0's PKCS#11 code depends on.</dd>
+
+  <dt>Does this work on Apple Silicon or only Intel Macs?</dt>
+  <dd>Both — Watchdata's driver ships as a universal binary and the bug reproduces on both architectures.</dd>
+
+  <dt>Is this specific to the ProxKey brand, or does it affect other DSC tokens too?</dt>
+  <dd>Any Watchdata TimeCos/PK-based token, regardless of which Certifying Authority issued it, is very likely affected.</dd>
+
+  <dt>Can I sign PDFs on Mac without a Windows license or a VM?</dt>
+  <dd>Yes — that's the entire point of this project. No VM, no Windows, no Wine.</dd>
+</dl>
+
+<footer>
+  Full documentation, source, and the one-click launcher app:
+  <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos">github.com/suvrashaw/proxkey-jsignpdf-macos</a>
+</footer>
+
+</body>
+</html>

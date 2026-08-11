@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://suvrashaw.github.io/proxkey-jsignpdf-macos/sitemap.xml
