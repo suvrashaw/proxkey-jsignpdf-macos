@@ -106,6 +106,11 @@
   .qa dd{margin-left:0;color:inherit;opacity:.9}
   .cta{display:inline-block;margin-top:1rem;padding:.6rem 1.1rem;background:#1f6feb;color:#fff!important;border-radius:6px;text-decoration:none;font-weight:600}
   footer{margin-top:4rem;opacity:.7;font-size:.9em}
+  .cmdbox{position:relative}
+  .cmdbox pre{padding-right:4.5rem}
+  .copy-btn{position:absolute;top:.6rem;right:.6rem;padding:.35rem .7rem;font-size:.8em;font-weight:600;border:1px solid #d0d7de;border-radius:6px;background:#fff;color:#1a1a1a;cursor:pointer}
+  .copy-btn:hover{background:#f6f8fa}
+  @media(prefers-color-scheme:dark){.copy-btn{background:#21262d;color:#e6e6e6;border-color:#30363d}.copy-btn:hover{background:#30363d}}
 </style>
 </head>
 <body>
@@ -149,9 +154,14 @@ on the hung process and disassembly of the locking function — full writeup
 in the <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos#technical-appendix-how-the-lock-bug-was-actually-diagnosed">repo's technical appendix</a>.</p>
 
 <h2>Install (one line)</h2>
-<pre><code>curl -fsSL https://raw.githubusercontent.com/suvrashaw/proxkey-jsignpdf-macos/main/install.sh | bash</code></pre>
-<p>Automates everything that's safe to automate — cloning, Java 11, and
-disabling the lock-holding daemon. It can't install Watchdata's driver
+<div class="cmdbox">
+  <pre><code id="install-cmd">curl -fsSL https://raw.githubusercontent.com/suvrashaw/proxkey-jsignpdf-macos/main/install.sh | bash</code></pre>
+  <button class="copy-btn" onclick="copyInstallCmd(this)" aria-label="Copy install command">Copy</button>
+</div>
+<p><em>Browsers can't launch Terminal or run commands directly — no
+website can, for security reasons. Click Copy, open Terminal, paste,
+Enter.</em> Automates everything safe to automate — cloning, Java 11,
+disabling the lock-holding daemon. Can't install Watchdata's driver
 package or run <code>sudo</code> unattended (different vendors, different
 URLs), so it prints exactly what's left. Details below, or in the
 <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos#setup">repo's Setup section</a>.</p>
@@ -202,5 +212,15 @@ in the <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos">GitHub repo
   <a href="https://github.com/suvrashaw/proxkey-jsignpdf-macos">github.com/suvrashaw/proxkey-jsignpdf-macos</a>
 </footer>
 
+<script>
+function copyInstallCmd(btn) {
+  var text = document.getElementById('install-cmd').textContent;
+  navigator.clipboard.writeText(text).then(function () {
+    var original = btn.textContent;
+    btn.textContent = 'Copied';
+    setTimeout(function () { btn.textContent = original; }, 1500);
+  });
+}
+</script>
 </body>
 </html>
