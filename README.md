@@ -17,6 +17,35 @@ If you have a WD ProxKey / Watchdata-branded token and JSignPdf hangs, sits
 with every button greyed out, or never returns from listing slots — this is
 almost certainly your problem too.
 
+## Symptoms this fixes
+
+Search-matching this repo if you're seeing any of the following on macOS
+with a WD ProxKey / Watchdata DSC token:
+
+- **ProxKey Token Tool.app** — every button (User Login, Change PIN, Import
+  Cert...) stays permanently greyed out / disabled, clicking does nothing
+- `pkcs11-tool --list-slots` **hangs forever** and never returns
+- JSignPdf's **"Load keys"** button hangs indefinitely, PIN prompt never
+  appears
+- Java: `NoClassDefFoundError: sun/security/action/GetPropertyAction`
+- Java: `IllegalAccessException: class ... cannot access class
+  sun.security.pkcs11.SunPKCS11 ... module jdk.crypto.cryptoki does not
+  export sun.security.pkcs11`
+- `IllegalAccessError: ... cannot access class sun.security.util.Debug`
+- WD ProxKey / Watchdata token **not detected on macOS Sonoma / Sequoia /
+  Tahoe**, Apple Silicon or Intel
+- "Digital Signature Certificate (DSC) token not working on Mac" — for
+  India-specific DSC tokens issued by eMudhra, Capricorn, Sify, Pantasign,
+  or similar CAs on a Watchdata-manufactured USB token
+- ProxKey works fine on Windows but **does nothing when plugged into a
+  Mac**
+
+**Short answer:** it's not your Mac, your token, or your certificate.
+Watchdata's own macOS driver has a locking bug (their `ProxkeyCertMND`
+background helper never releases an exclusive device lock), and JSignPdf
+2.3.0 needs an older JDK than what ships by default. Both are fixable in a
+few minutes — see [Setup](#setup) below.
+
 ## Who this is for
 
 - You have a WD ProxKey (or any Watchdata TimeCos/PK-based) USB token.
@@ -299,6 +328,53 @@ driver, the methodology here generalizes:
    live `ProxkeyCertMND` process.
 6. Killing that process released the lock immediately; disabling its
    LaunchAgent made the fix permanent.
+
+## FAQ
+
+**Does WD ProxKey / Watchdata work on macOS at all?**
+Yes, but only after fixing the two bugs this repo documents — a locking
+bug in Watchdata's driver, and a Java-version incompatibility in JSignPdf
+2.3.0. There is no working configuration that skips both fixes.
+
+**Why are all the buttons in ProxKey Token Tool greyed out on Mac?**
+`ProxkeyCertMND`, a background helper Watchdata installs, holds an
+exclusive lock on the token forever and never releases it, so every
+PKCS#11 client — including Watchdata's own GUI — hangs waiting for a lock
+that's never coming free. Disable it (Setup step 3) and the buttons work
+immediately.
+
+**Why does `pkcs11-tool --list-slots` / JSignPdf's "Load keys" hang
+forever?**
+Same root cause as above — it's not a timeout you need to wait out, it
+will genuinely never return on its own. Kill `ProxkeyCertMND`
+(`pkill -f ProxkeyCertMND`) and retry.
+
+**What Java version does JSignPdf need for PKCS#11 / smart card
+signing?**
+Java 11. JSignPdf 2.3.0's PKCS#11 code depends on internal JDK classes
+(`sun.security.pkcs11.SunPKCS11`, `sun.security.action.GetPropertyAction`)
+that JDK 16+ removed outright — not just restricted, actually deleted, so
+no `--add-opens`/`--add-exports` flag can work around it. Use
+`brew install --cask temurin@11` and run JSignPdf on that specifically,
+independent of your system's default Java.
+
+**Does this work on Apple Silicon (M1/M2/M3/M4) or only Intel Macs?**
+Both — Watchdata's driver (`libwdpkcs_Proxkey.dylib`) ships as a universal
+binary, and the locking bug reproduces identically on both architectures.
+
+**Is this specific to the ProxKey brand, or does it affect other DSC
+tokens too?**
+The bug is in Watchdata's shared macOS driver package, which is used
+across DSC tokens sold under different brand names by different
+Certifying Authorities (eMudhra, Capricorn, Sify, Pantasign, and others).
+If your token uses a Watchdata TimeCos/PK chip — check
+`pkcs11-tool --list-slots`, it'll report `token manufacturer: Watchdata
+Corp.` — this almost certainly applies to you too, regardless of which CA
+issued your certificate.
+
+**Can I sign PDFs on Mac without buying a Windows license or running a
+VM?**
+Yes — that's the entire point of this repo. No VM, no Windows, no Wine.
 
 ## License
 
