@@ -19,12 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
----
-
-This license applies only to this repository's own scripts (run-jsignpdf.command,
-scripts/build-app.sh, and this documentation). It does not apply to, and does
-not grant any rights to, JSignPdf, bundled unmodified in vendor/jsignpdf-2.3.0/
-under its own LGPLv2/MPL 1.0 terms (see vendor/jsignpdf-2.3.0/licenses/ and
-https://github.com/intoolswetrust/jsignpdf), or to Watchdata's ProxKey drivers
-(proprietary), which are not distributed in this repository.
